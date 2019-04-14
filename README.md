@@ -3,7 +3,27 @@
 This repository contains a lightweight wrapper to convert DeepMind Control Suite to OpenAI gym environments. 
 
 # Installation
+One can install directly from PyPI:
+```
+pip install dm2gym
+```
+The installation can also be done with:
+```
+git clone https://github.com/zuoxingdong/dm2gym.git
+cd dm2gym
+pip install -e .
+```
 
+# Getting started
+Converting the environment from `dm_control` to `gym` can be as simple as:
+```python
+from dm_control import suite
+from dm2gym import DMControlEnv
+
+env = suite.load('cheetah', 'run')
+env = DMControlEnv(env)
+
+```
 
 # What's new
 
