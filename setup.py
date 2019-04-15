@@ -16,7 +16,7 @@ tests_require = ['pytest',
                  'sphinx_rtd_theme']
 
 setup(name='dm2gym',
-      version='0.1.0',
+      version='0.1.1',
       author='Xingdong Zuo',
       author_email='zuoxingdong@hotmail.com',
       description='dm2gym: convert DeepMind Control Suite to OpenAI gym environments.',
