@@ -56,6 +56,8 @@ class DMControlEnv(gym.Env):
         return timestep.observation
     
     def render(self, mode='human', **kwargs):
+        if 'camera_id' not in kwargs:
+            kwargs['camera_id'] = 0  # tracking camera
         img = self.env.physics.render(**kwargs)
         if mode == 'rgb_array':
             return img
