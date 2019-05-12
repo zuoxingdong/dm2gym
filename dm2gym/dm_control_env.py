@@ -32,28 +32,8 @@ def convert_dm_control_to_gym_space(dm_control_space):
 
 class DMControlEnv(gym.Env):
 
-    def __init__(self, env, *, render_window_mode='gym'):
-        """Constructor
-
-        Args:
-            env (dm_control.rl.control.Environment) The dm_control environment
-                to wrap
-            render_window_mode (str): Which render window mode to use. Options
-                are;
-                - 'gym' (default): Use
-                    `gym.envs.classic_control.rendering.SimpleImageViewer`,
-                    which is backed by pyglet
-                - 'opencv': Use an OpenCV rendering window mode
-        """
-
-        # Verify render window mode
-        assert render_window_mode in ['gym', 'opencv'],\
-            "Invalid value for render_window_mode: {}".format(
-                render_window_mode
-            )
-
+    def __init__(self, env):
         self.env = env
-        self.render_window_mode = render_window_mode
         self.metadata = {'render.modes': ['human', 'rgb_array'],
                          'video.frames_per_second': int(np.round(1.0/self.env.control_timestep()))}
 
@@ -78,11 +58,17 @@ class DMControlEnv(gym.Env):
         timestep = self.env.reset()
         return timestep.observation
     
-    def render(self, mode='human', **kwargs):
+    def render(self, mode='human', *, render_window_mode='gym', **kwargs):
 
         if 'camera_id' not in kwargs:
             # Tracking camera
             kwargs['camera_id'] = 0
+
+        # Verify render window mode
+        assert render_window_mode in ['gym', 'opencv'],\
+            "Invalid value for render_window_mode: {}".format(
+                render_window_mode
+            )
 
         img = self.env.physics.render(**kwargs)
         
@@ -92,46 +78,17 @@ class DMControlEnv(gym.Env):
 
         elif mode == "human":
 
-            if self.render_window_mode == 'gym':
-
-                # Use a gym-backed render window
-                from gym.envs.classic_control import rendering
-
-                # Construct viewer
-                if self.viewer is None:
+            if self.viewer is None:
+                # Open viewer
+                if render_window_mode == 'gym':
+                    from gym.envs.classic_control import rendering
                     self.viewer = rendering.SimpleImageViewer(maxwidth=1024)
+                elif render_window_mode == 'opencv':
+                    from dm2gym import OpenCVImageViewer
+                    self.viewer = OpenCVImageViewer()
 
-                self.viewer.imshow(img)
-                
-                return self.viewer.isopen
-
-            elif self.render_window_mode == 'opencv':
-
-                # Use an opencv-backed render window
-                import cv2
-
-                # Construct viewer, saving the window ID string to self.viewer
-                if self.viewer is None:
-                    self.viewer = self.env.__str__()
-                    cv2.namedWindow(self.viewer, cv2.WINDOW_AUTOSIZE)
-
-                # Convert to BGR and show
-                cv2.imshow(self.viewer, img[:, :, [2, 1, 0]])
-
-                # Listen for escape key, then exit if pressed
-                if cv2.waitKey(1) in [27]:
-                    exit()
-
-                return True
-
-
-            else:
-
-                raise ValueError(
-                    "Invalid value for render_window_mode: {}".format(
-                        self.render_window_mode
-                    )
-                )
+            self.viewer.imshow(img)
+            return self.viewer.isopen
 
         else:
 
