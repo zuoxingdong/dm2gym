@@ -31,7 +31,6 @@ def convert_dm_control_to_gym_space(dm_control_space):
     
 
 class DMControlEnv(gym.Env):
-
     def __init__(self, env):
         self.env = env
         self.metadata = {'render.modes': ['human', 'rgb_array'],
@@ -59,25 +58,18 @@ class DMControlEnv(gym.Env):
         return timestep.observation
     
     def render(self, mode='human', *, render_window_mode='gym', **kwargs):
-
         if 'camera_id' not in kwargs:
             # Tracking camera
             kwargs['camera_id'] = 0
-
         # Verify render window mode
         assert render_window_mode in ['gym', 'opencv'],\
             "Invalid value for render_window_mode: {}".format(
                 render_window_mode
             )
-
         img = self.env.physics.render(**kwargs)
-        
         if mode == 'rgb_array':
-
             return img
-
         elif mode == "human":
-
             if self.viewer is None:
                 # Open viewer
                 if render_window_mode == 'gym':
@@ -86,12 +78,9 @@ class DMControlEnv(gym.Env):
                 elif render_window_mode == 'opencv':
                     from dm2gym import OpenCVImageViewer
                     self.viewer = OpenCVImageViewer()
-
             self.viewer.imshow(img)
             return self.viewer.isopen
-
         else:
-
             raise NotImplementedError
 
     def close(self):
