@@ -1,9 +1,11 @@
 from collections import OrderedDict
 
 import numpy as np
+
 import gym
 from gym import spaces
 from gym.envs.registration import EnvSpec
+
 from dm_control.rl.specs import ArraySpec
 from dm_control.rl.specs import BoundedArraySpec
 
@@ -55,16 +57,27 @@ class DMControlEnv(gym.Env):
         timestep = self.env.reset()
         return timestep.observation
     
-    def render(self, mode='human', **kwargs):
+    def render(self, mode='human', *, render_window_mode='gym', **kwargs):
         if 'camera_id' not in kwargs:
-            kwargs['camera_id'] = 0  # tracking camera
+            # Tracking camera
+            kwargs['camera_id'] = 0
+        # Verify render window mode
+        assert render_window_mode in ['gym', 'opencv'],\
+            "Invalid value for render_window_mode: {}".format(
+                render_window_mode
+            )
         img = self.env.physics.render(**kwargs)
         if mode == 'rgb_array':
             return img
         elif mode == "human":
-            from gym.envs.classic_control import rendering
             if self.viewer is None:
-                self.viewer = rendering.SimpleImageViewer(maxwidth=1024)
+                # Open viewer
+                if render_window_mode == 'gym':
+                    from gym.envs.classic_control import rendering
+                    self.viewer = rendering.SimpleImageViewer(maxwidth=1024)
+                elif render_window_mode == 'opencv':
+                    from dm2gym import OpenCVImageViewer
+                    self.viewer = OpenCVImageViewer()
             self.viewer.imshow(img)
             return self.viewer.isopen
         else:
