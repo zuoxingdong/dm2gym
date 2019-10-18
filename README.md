@@ -15,17 +15,22 @@ pip install -e .
 ```
 
 # Getting started
-Converting the environment from `dm_control` to `gym` can be as simple as:
+One liner to create the environment:
 ```python
-from dm_control import suite
-from dm2gym import DMControlEnv
+import gym
+env = gym.make('dm2gym:CheetahRun-v0')
+```
 
-env = suite.load('cheetah', 'run')
-env = DMControlEnv(env)
-
+More examples to specify the environment:
+```python
+env = gym.make('dm2gym:FishSwim-v0', environment_kwargs={'flat_observation': True})
+env = gym.make('dm2gym:HopperHop-v0', visualize_reward=True)
 ```
 
 # What's new
+- 2019-10-18 (v0.2.0)
+    - Sync to the latest API of DeepMind Control Suite
+    - Support gym registration: create all `dm_control` environments via `gym.make`
 
 - 2019-04-14 (v0.1.0)
     - Initial release

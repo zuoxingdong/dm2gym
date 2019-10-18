@@ -8,26 +8,25 @@ with codecs.open('README.md', encoding='utf-8') as f:
     long_description = f.read()
 
 # Minimal requried dependencies
-install_requires = ['numpy', 
-                    'gym',
-                    'opencv-python']
+install_requires = ['numpy',
+                    'gym']
 tests_require = ['pytest', 
                  'flake8', 
                  'sphinx', 
                  'sphinx_rtd_theme']
 
 setup(name='dm2gym',
-      version='0.1.1',
+      version='0.2.0',
       author='Xingdong Zuo',
       author_email='zuoxingdong@hotmail.com',
-      description='dm2gym: convert DeepMind Control Suite to OpenAI gym environments.',
+      description='dm2gym: Convert DeepMind Control Suite to OpenAI gym environments.',
       long_description=long_description, 
       long_description_content_type='text/markdown',
       url='https://github.com/zuoxingdong/dm2gym',
       install_requires=install_requires,
       tests_require=tests_require,
       python_requires='>=3',
-      # List all lagom packages (folder with __init__.py), useful to distribute a release
+      # List all packages (folder with __init__.py), useful to distribute a release
       packages=find_packages(), 
       # tell pip some metadata (e.g. Python version, OS etc.)
       classifiers=['Programming Language :: Python :: 3', 

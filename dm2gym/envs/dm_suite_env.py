@@ -1,45 +1,42 @@
-from collections import OrderedDict
-
-import numpy as np
-
 import gym
 from gym import spaces
-from gym.envs.registration import EnvSpec
 
-from dm_control.rl.specs import ArraySpec
-from dm_control.rl.specs import BoundedArraySpec
+from dm_control import suite
+from dm_env import specs
 
 
 def convert_dm_control_to_gym_space(dm_control_space):
     r"""Convert dm_control space to gym space. """
-    if isinstance(dm_control_space, BoundedArraySpec):
+    if isinstance(dm_control_space, specs.BoundedArray):
         space = spaces.Box(low=dm_control_space.minimum, 
                            high=dm_control_space.maximum, 
                            dtype=dm_control_space.dtype)
         assert space.shape == dm_control_space.shape
         return space
-    elif isinstance(dm_control_space, ArraySpec) and not isinstance(dm_control_space, BoundedArraySpec):
+    elif isinstance(dm_control_space, specs.Array) and not isinstance(dm_control_space, specs.BoundedArray):
         space = spaces.Box(low=-float('inf'), 
                            high=float('inf'), 
                            shape=dm_control_space.shape, 
                            dtype=dm_control_space.dtype)
         return space
-    elif isinstance(dm_control_space, OrderedDict):
-        space = spaces.Dict(OrderedDict([(key, convert_dm_control_to_gym_space(value)) 
-                                         for key, value in dm_control_space.items()]))
+    elif isinstance(dm_control_space, dict):
+        space = spaces.Dict({key: convert_dm_control_to_gym_space(value)
+                             for key, value in dm_control_space.items()})
         return space
-    
 
-class DMControlEnv(gym.Env):
-    def __init__(self, env):
-        self.env = env
+
+class DMSuiteEnv(gym.Env):
+    def __init__(self, domain_name, task_name, task_kwargs=None, environment_kwargs=None, visualize_reward=False):
+        self.env = suite.load(domain_name, 
+                              task_name, 
+                              task_kwargs=task_kwargs, 
+                              environment_kwargs=environment_kwargs, 
+                              visualize_reward=visualize_reward)
         self.metadata = {'render.modes': ['human', 'rgb_array'],
-                         'video.frames_per_second': int(np.round(1.0/self.env.control_timestep()))}
+                         'video.frames_per_second': round(1.0/self.env.control_timestep())}
 
-        self.observation_space = convert_dm_control_to_gym_space(env.observation_spec())
-        self.action_space = convert_dm_control_to_gym_space(env.action_spec())
-        max_episode_steps = None if env._step_limit == float('inf') else int(env._step_limit)
-        self.spec = EnvSpec('DM-v0', max_episode_steps=max_episode_steps)
+        self.observation_space = convert_dm_control_to_gym_space(self.env.observation_spec())
+        self.action_space = convert_dm_control_to_gym_space(self.env.action_spec())
         self.viewer = None
     
     def seed(self, seed):
@@ -57,25 +54,20 @@ class DMControlEnv(gym.Env):
         timestep = self.env.reset()
         return timestep.observation
     
-    def render(self, mode='human', *, render_window_mode='gym', **kwargs):
+    def render(self, mode='human', **kwargs):
         if 'camera_id' not in kwargs:
-            # Tracking camera
-            kwargs['camera_id'] = 0
-        # Verify render window mode
-        assert render_window_mode in ['gym', 'opencv'],\
-            "Invalid value for render_window_mode: {}".format(
-                render_window_mode
-            )
+            kwargs['camera_id'] = 0  # Tracking camera
+        use_opencv_renderer = kwargs.pop('use_opencv_renderer', False)
+        
         img = self.env.physics.render(**kwargs)
         if mode == 'rgb_array':
             return img
-        elif mode == "human":
+        elif mode == 'human':
             if self.viewer is None:
-                # Open viewer
-                if render_window_mode == 'gym':
+                if not use_opencv_renderer:
                     from gym.envs.classic_control import rendering
                     self.viewer = rendering.SimpleImageViewer(maxwidth=1024)
-                elif render_window_mode == 'opencv':
+                else:
                     from dm2gym import OpenCVImageViewer
                     self.viewer = OpenCVImageViewer()
             self.viewer.imshow(img)
