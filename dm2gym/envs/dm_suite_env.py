@@ -68,7 +68,7 @@ class DMSuiteEnv(gym.Env):
                     from gym.envs.classic_control import rendering
                     self.viewer = rendering.SimpleImageViewer(maxwidth=1024)
                 else:
-                    from dm2gym import OpenCVImageViewer
+                    from . import OpenCVImageViewer
                     self.viewer = OpenCVImageViewer()
             self.viewer.imshow(img)
             return self.viewer.isopen
