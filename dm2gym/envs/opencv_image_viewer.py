@@ -10,6 +10,7 @@ class OpenCVImageViewer():
     This class is meant to be a drop-in replacement for
     `gym.envs.classic_control.rendering.SimpleImageViewer`
     """
+
     def __init__(self, *, escape_to_exit=False):
         """Construct the viewing window"""
         self._escape_to_exit = escape_to_exit
@@ -29,8 +30,11 @@ class OpenCVImageViewer():
         # Listen for escape key, then exit if pressed
         if cv2.waitKey(1) in [27] and self._escape_to_exit:
             exit()
-    
+
     @property
     def isopen(self):
         """Is the window open?"""
         return self._isopen
+
+    def close(self):
+        pass
